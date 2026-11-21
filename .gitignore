@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# SQLite 数据库（运行时生成，含演示数据）
+backend/data/
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# 编辑器 / 系统
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# 日志
+*.log
+
+# Wiki 暂存目录（会单独推送到 .wiki.git）
+.wiki-staging/
