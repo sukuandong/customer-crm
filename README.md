@@ -124,6 +124,17 @@ SQLite 单文件数据库，位于 `backend/data/crm.db`，包含一张 `custome
 
 ---
 
+## 文档 / Wiki
+
+详细文档位于 [`docs/`](docs/) 目录，也可在项目页面的 **Wiki** 标签查看：
+
+- [快速开始](docs/Quick-Start.md) — 环境准备、启动、登录
+- [API 参考](docs/API-Reference.md) — 接口请求与响应
+- [架构设计](docs/Architecture.md) — 分层、鉴权流程
+- [常见问题](docs/FAQ.md) — 排错与注意点
+
+---
+
 ## 安全提示
 
 本项目是**教学演示用途**，以下各项在生产环境中必须改造：

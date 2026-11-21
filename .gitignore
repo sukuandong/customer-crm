@@ -24,3 +24,6 @@ Thumbs.db
 
 # Wiki 暂存目录（会单独推送到 .wiki.git）
 .wiki-staging/
+
+# Wiki 克隆缓存
+.wiki-clone/
