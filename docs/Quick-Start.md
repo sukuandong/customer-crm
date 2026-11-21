@@ -2,26 +2,35 @@
 
 ## 环境要求
 
-- **Python 3.8+**（本项目在 Python 3.13 下验证通过）
-- 无需安装数据库软件——SQLite 是 Python 标准库自带的
+- **Python 3.10+**（本项目在 Python 3.13 下验证通过）
+- **PostgreSQL**（本地安装，或按下方用 Docker 启动）
 
-## 第一步：安装依赖
+## 第一步：准备数据库
 
-进入后端目录，安装两个依赖（FastAPI 与 Uvicorn）：
+用 Docker 一行启动 PostgreSQL 18（数据卷持久化，容器名 `pg18-crm`）：
+
+```bash
+docker run -d --name pg18-crm --restart unless-stopped \
+  -e POSTGRES_PASSWORD='Pg18@crm2026' -e POSTGRES_DB=crm \
+  -p 5432:5432 -v pg18-data:/var/lib/postgresql postgres:18
+```
+
+若连接串不同，用环境变量 `DATABASE_URL` 覆盖（密码中 `@` 需写成 `%40`）：
+
+```bash
+export DATABASE_URL="postgresql+asyncpg://user:pass@host:5432/crm"
+```
+
+## 第二步：安装依赖并启动服务
+
+进入后端目录安装依赖（FastAPI、Uvicorn、SQLAlchemy、asyncpg）：
 
 ```bash
 cd backend
 pip install -r requirements.txt
 ```
 
-`requirements.txt` 内容：
-
-```
-fastapi>=0.110.0
-uvicorn>=0.27.0
-```
-
-## 第二步：启动服务
+启动服务：
 
 ```bash
 python -m uvicorn main:app --host 127.0.0.1 --port 8000
@@ -33,7 +42,7 @@ python -m uvicorn main:app --host 127.0.0.1 --port 8000
 INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
 ```
 
-首次启动时，`database.init_db()` 会自动创建 `backend/data/crm.db` 并写入 8 条演示数据。
+启动时通过 lifespan 调用 `database.init_db()`：自动建表（若不存在），空表时写入 8 条演示数据。数据落在 PostgreSQL，不再使用本地文件数据库。
 
 ## 第三步：登录
 

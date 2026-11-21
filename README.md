@@ -1,10 +1,10 @@
 # 云客 CRM — 客户管理系统示例
 
-一个**零前端框架**的客户管理系统示例项目：原生 HTML + CSS + JavaScript 前端，Python FastAPI 后端，SQLite 本地数据库。
+一个**零前端框架**的客户管理系统示例项目：原生 HTML + CSS + JavaScript 前端，Python FastAPI 后端（全异步），PostgreSQL 数据库。
 
 适合用来学习「纯前端三件套 + REST API」的完整开发链路，也可作为小型后台管理系统的起步模板。
 
-![Tech Stack](https://img.shields.io/badge/Frontend-HTML%20%2B%20CSS%20%2B%20JS-blue) ![Backend](https://img.shields.io/badge/Backend-FastAPI-009688) ![DB](https://img.shields.io/badge/Database-SQLite-orange) ![Python](https://img.shields.io/badge/Python-3.8%2B-yellow)
+![Tech Stack](https://img.shields.io/badge/Frontend-HTML%20%2B%20CSS%20%2B%20JS-blue) ![Backend](https://img.shields.io/badge/Backend-FastAPI-009688) ![DB](https://img.shields.io/badge/Database-PostgreSQL-336791) ![Python](https://img.shields.io/badge/Python-3.10%2B-yellow)
 
 ---
 
@@ -24,11 +24,13 @@
 | 层级 | 技术 |
 |------|------|
 | 前端 | 原生 HTML5 / CSS3 / JavaScript（无任何框架） |
-| 后端 | Python FastAPI（Uvicorn 作为 ASGI 服务器） |
-| 数据库 | SQLite（Python 标准库 `sqlite3`，无需额外安装） |
+| 后端 | Python FastAPI（全 async 路由，Uvicorn 作为 ASGI 服务器） |
+| 数据库 | PostgreSQL 18 + SQLAlchemy 2.0（async）+ asyncpg 异步驱动，带连接池 |
 | 鉴权 | HMAC-SHA256 令牌（仅用标准库） |
 
-完整依赖见 [`backend/requirements.txt`](backend/requirements.txt)，仅 `fastapi` 和 `uvicorn` 两项。
+完整依赖见 [`backend/requirements.txt`](backend/requirements.txt)。
+
+> 数据库为可选外部依赖：本地或 Docker 中的 PostgreSQL 均可，通过环境变量 `DATABASE_URL` 配置连接串（默认指向本机 `pg18-crm` 容器）。
 
 ---
 
@@ -36,27 +38,40 @@
 
 ### 1. 环境要求
 
-- Python 3.8+
+- Python 3.10+
+- PostgreSQL（本地安装或 Docker 容器）
 
-### 2. 安装依赖
+### 2. 准备数据库
+
+用 Docker 一行启动 PostgreSQL 18（数据卷持久化）：
+
+```bash
+docker run -d --name pg18-crm --restart unless-stopped \
+  -e POSTGRES_PASSWORD='Pg18@crm2026' -e POSTGRES_DB=crm \
+  -p 5432:5432 -v pg18-data:/var/lib/postgresql postgres:18
+```
+
+若连接串与默认不同，用环境变量覆盖（注意密码中的 `@` 需编码为 `%40`）：
+
+```bash
+export DATABASE_URL="postgresql+asyncpg://user:pass@host:5432/crm"
+```
+
+### 3. 安装依赖并启动
 
 ```bash
 cd backend
 pip install -r requirements.txt
-```
-
-### 3. 启动服务
-
-```bash
-cd backend
 python -m uvicorn main:app --host 127.0.0.1 --port 8000
 ```
+
+服务启动时会通过 lifespan 自动建表（若为空表则写入 8 条演示客户数据）。
 
 ### 4. 访问
 
 浏览器打开 <http://127.0.0.1:8000/>，使用账号 `admin`、密码 `admin` 登录。
 
-服务首次启动会自动创建数据库 `backend/data/crm.db` 并写入 8 条演示客户数据。
+服务启动时会自动建表，空表时写入 8 条演示客户数据（数据存于 PostgreSQL）。
 
 ---
 
@@ -65,12 +80,10 @@ python -m uvicorn main:app --host 127.0.0.1 --port 8000
 ```
 customer-crm/
 ├── backend/                 # 后端
-│   ├── main.py              # FastAPI 入口：路由 + 静态托管
-│   ├── database.py          # SQLite 数据访问层（建表、CRUD、统计）
+│   ├── main.py              # FastAPI 入口：async 路由 + 静态托管 + lifespan
+│   ├── database.py          # 数据访问层：SQLAlchemy async + asyncpg 连接池
 │   ├── auth.py              # 令牌生成与校验（HMAC）
-│   ├── requirements.txt     # 依赖清单
-│   └── data/                # 数据库目录（首次启动自动生成）
-│       └── crm.db
+│   └── requirements.txt     # 依赖清单
 └── frontend/                # 前端（原生三件套）
     ├── index.html           # 登录页
     ├── admin.html           # 管理主页
@@ -105,7 +118,7 @@ customer-crm/
 
 ## 数据库
 
-SQLite 单文件数据库，位于 `backend/data/crm.db`，包含一张 `customers` 表：
+PostgreSQL 18（推荐用 Docker 容器 `pg18-crm`），包含一张 `customers` 表：
 
 | 字段 | 说明 |
 |------|------|
@@ -118,9 +131,9 @@ SQLite 单文件数据库，位于 `backend/data/crm.db`，包含一张 `custome
 | `level` | 等级（普通 / VIP） |
 | `status` | 状态（跟进中 / 已成交 / 潜在客户 / 已流失） |
 | `remark` | 备注 |
-| `created_at` | 创建时间 |
+| `created_at` | 创建时间（TIMESTAMPTZ，按 Asia/Shanghai 格式化输出） |
 
-可以用 [DB Browser for SQLite](https://sqlitebrowser.org/) 等 GUI 工具直接打开查看和编辑。
+数据访问层用 SQLAlchemy 2.0 async + asyncpg，持有全局连接池（`pool_pre_ping` 探活、`pool_recycle` 回收），所有路由为 async。可用 [DBeaver Community](https://dbeaver.io/) 等 GUI 工具连接查看和编辑。
 
 ---
 

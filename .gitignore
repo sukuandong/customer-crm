@@ -27,3 +27,6 @@ Thumbs.db
 
 # Wiki 克隆缓存
 .wiki-clone/
+
+.wiki-pull/
+.wiki-verify/

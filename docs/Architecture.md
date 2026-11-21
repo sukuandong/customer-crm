@@ -17,10 +17,10 @@ Uvicorn (ASGI 服务器) ── 监听 8000 端口
   │    └─ /api/*     ── REST API
   │                       │
   │                       ├─ auth.py     令牌鉴权
-  │                       └─ database.py 数据访问
-  │                                          │
+  │                       └─ database.py 数据访问（SQLAlchemy async）
+  │                                          │  asyncpg 连接池
   │                                          ▼
-  │                                    SQLite (crm.db)
+  │                                  PostgreSQL 18 (crm)
 ```
 
 一个 Uvicorn 进程同时承担两个角色：
@@ -34,8 +34,8 @@ Uvicorn (ASGI 服务器) ── 监听 8000 端口
 
 | 文件 | 职责 |
 |------|------|
-| `backend/main.py` | FastAPI 入口：定义路由、请求模型、鉴权依赖、静态托管 |
-| `backend/database.py` | 数据访问层：建表、CRUD、统计，全部 SQL 集中在此 |
+| `backend/main.py` | FastAPI 入口：async 路由、请求模型、鉴权依赖、lifespan、静态托管 |
+| `backend/database.py` | 数据访问层：SQLAlchemy 2.0 async + asyncpg 连接池，ORM 模型与 CRUD 集中在此 |
 | `backend/auth.py` | 鉴权层：令牌的生成与校验 |
 | `frontend/index.html` | 登录页结构 |
 | `frontend/admin.html` | 管理主页结构（侧边栏 + 内容区） |
@@ -59,9 +59,11 @@ Uvicorn (ASGI 服务器) ── 监听 8000 端口
 
 ## 数据模型
 
-单表 `customers`，主键自增，字段见项目 README。数据库文件 `backend/data/crm.db` 在首次启动时自动创建。
+单表 `customers`，主键自增（`BIGSERIAL`），字段见项目 README。数据存于 PostgreSQL 的 `crm` 库，连接串由 `DATABASE_URL` 环境变量配置。
 
-`init_db()` 采用幂等设计：表已存在则跳过建表，有数据则跳过写入演示数据，因此重启服务不会重复插入记录。
+数据访问层使用全局异步引擎 + 连接池（`pool_size=5`、`max_overflow=10`、`pool_pre_ping` 探活、`pool_recycle=1800` 回收），所有路由与数据函数为 `async`，避免每次请求新建连接。
+
+`init_db()` 在 lifespan 启动时执行，采用幂等设计：表已存在则跳过建表，有数据则跳过写入演示数据，因此重启服务不会重复插入记录。
 
 ## 前端为什么不用框架
 

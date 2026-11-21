@@ -32,28 +32,23 @@ python -m uvicorn main:app --host 127.0.0.1 --port 8001
 
 ## 数据库在哪里？怎么查看？
 
-数据库文件：`backend/data/crm.db`（首次启动自动生成）。
+数据在 PostgreSQL 的 `crm` 库中（默认容器 `pg18-crm`），不再使用本地文件数据库。连接串由环境变量 `DATABASE_URL` 配置。
 
-可以用 GUI 工具打开查看和编辑，推荐 [DB Browser for SQLite](https://sqlitebrowser.org/)（免费开源）：
-
-1. 打开 DB Browser，点「Open Database」
-2. 选择 `backend/data/crm.db`
-3. 切到「Browse Data」标签查看 `customers` 表，双击单元格可直接编辑，改完点「Write Changes」保存
-
-也可以用 Python 命令行快速查询：
+用 Docker 查看数据：
 
 ```bash
-python3 -c "import sqlite3;c=sqlite3.connect('backend/data/crm.db');print(c.execute('select name,company,status from customers').fetchall())"
+docker exec -it pg18-crm psql -U postgres -d crm -c "SELECT id,name,company,status FROM customers;"
 ```
 
-## GUI 里改数据报 `database is locked`
+也可以用 GUI 工具连接，推荐 [DBeaver Community](https://dbeaver.io/)（免费开源）：新建 PostgreSQL 连接，主机 `localhost`、端口 `5432`、数据库 `crm`、用户 `postgres`。
 
-SQLite 允许并发读，但写入时若服务正在操作同一数据库，可能出现短暂锁冲突。建议：
+## 启动时报连接数据库失败 / `Connection refused`
 
-- 改数据前先停掉后端服务（`Ctrl + C`），改完再启动
-- 或错开操作时间
+PostgreSQL 没启动或连接串不对。检查：
 
-改完后刷新网页即可看到新数据。
+1. 容器是否在运行：`docker ps --filter name=pg18-crm`
+2. 若已停止：`docker start pg18-crm`
+3. 若连接串与默认不同，设置环境变量 `DATABASE_URL`（密码里 `@` 要写成 `%40`）
 
 ## 忘了登录账号密码
 
@@ -71,7 +66,7 @@ SQLite 允许并发读，但写入时若服务正在操作同一数据库，可�
 
 当前版本未内置 Excel 导入导出功能。可以：
 
-- 用 DB Browser for SQLite 的导出功能转 CSV
-- 或自行编写脚本操作 `crm.db`
+- 用 DBeaver 的导出功能转 CSV
+- 或用 `docker exec pg18-crm psql ... \copy` 导出，或自行编写脚本查询 PostgreSQL
 
 后续可考虑增加「导出 Excel」「批量导入」功能。
