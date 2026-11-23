@@ -51,6 +51,9 @@ python -m uvicorn main:app --host 127.0.0.1 --port 8000
 | `.wiki-staging/` | 推送到 GitHub Wiki 的暂存镜像，被主仓库忽略，内容须与 `docs/` 一致 | 人工或脚本同步 |
 | `dev-docs/specs/` | Dev Spec：每个功能的需求、设计、验收标准 | 功能开发者 |
 | `dev-docs/adr/` | ADR：重要架构决策与权衡 | 决策者 |
+| `dev-docs/ai-review-setup.md` | PR 审查机制的配置手册（分支保护、AI review） | 负责人 |
+| `.github/` | PR 模板、CI 检查 `pr-checks.yml`、CODEOWNERS | 负责人 |
+| `REVIEW.md` | PR 审查规则，AI 与人类 reviewer 共用 | 负责人 |
 | `CHANGELOG.md` | 对外可见的变更记录 | 每次发布/重要改动 |
 | `STATUS.md` | **当前进度、已知问题、下一步**——同事 pull 后先读这个 | 每次提交都更新 |
 

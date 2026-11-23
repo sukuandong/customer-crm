@@ -1,0 +1,6 @@
+# 保护评审规则与 CI 配置本身：改动这些文件必须经负责人复核，
+# 否则一个 PR 就能改掉 AI reviewer 的规则或 CI 检查。
+/.github/ @sukuandong
+/AGENTS.md @sukuandong
+/REVIEW.md @sukuandong
+/STATUS.md @sukuandong
