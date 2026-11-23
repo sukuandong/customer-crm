@@ -31,12 +31,27 @@
 
 ## 2. 机械检查（配置文件已就位）
 
+> **当前落地状态**：`pr-checks.yml` 已写好在本地，但因推送凭据缺少 `workflow` 权限，
+> 需按下文「上传 workflow 文件」步骤在 GitHub 网页单独添加；上传完成后本节才真正生效。
+
 `.github/workflows/pr-checks.yml` 做两件事：
 
 1. 对比 `base...head`：若改了 `backend/` 或 `frontend/` 却没改 `STATUS.md` / `CHANGELOG.md` / `dev-docs/` / `docs/`，直接失败
 2. `python -m compileall -q backend`：语法错误直接失败
 
 不需要任何 API key，fork 来的 PR 也能跑。要是它误报，改的是 workflow 里的两个 `grep -E` 路径表达式。
+
+### 上传 workflow 文件（网页操作）
+
+当前推送凭据（PAT）没有 `workflow` scope，无法通过 git 推送 workflow 文件，请在网页完成：
+
+1. 打开 `https://github.com/sukuandong/customer-crm`
+2. 点 `Add file` → `Create new file`
+3. 文件名输入框填 `.github/workflows/pr-checks.yml`（斜杠会自动创建目录）
+4. 把本地同路径文件的全部内容粘贴进去
+5. Commit new file，提交信息写 `ci: 添加 PR 机械检查 workflow`
+
+后续若要用 git 改 workflow，需要给 PAT 勾选 `workflow` scope，或改用 SSH / 有权限的凭据。
 
 ## 3. 路线 A：GitHub Copilot code review（最简单，无需 API key）
 
