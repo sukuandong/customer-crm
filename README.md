@@ -1,5 +1,7 @@
 # 云客 CRM — 客户管理系统示例
 
+> **给 AI 助手 / 新同事**：开始工作前请先读 [`AGENTS.md`](AGENTS.md)（项目约定）和 [`STATUS.md`](STATUS.md)（当前进度），再看本文件与 `docs/`。
+
 一个**零前端框架**的客户管理系统示例项目：原生 HTML + CSS + JavaScript 前端，Python FastAPI 后端（全异步），PostgreSQL 数据库。
 
 适合用来学习「纯前端三件套 + REST API」的完整开发链路，也可作为小型后台管理系统的起步模板。
