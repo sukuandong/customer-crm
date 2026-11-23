@@ -1,0 +1,48 @@
+name: PR checks
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  pr-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: 检查文档是否随代码更新
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE_REF="${{ github.base_ref }}"
+          HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+          git fetch origin "$BASE_REF" --no-tags
+
+          CHANGED="$(git diff --name-only "origin/$BASE_REF...$HEAD_SHA")"
+          CODE="$(printf '%s\n' "$CHANGED" | grep -E '^(backend|frontend)/' || true)"
+          DOCS="$(printf '%s\n' "$CHANGED" | grep -E '^(STATUS\.md|CHANGELOG\.md|README\.md|dev-docs/|docs/)' || true)"
+
+          if [ -n "$CODE" ] && [ -z "$DOCS" ]; then
+            echo "::error::本 PR 修改了代码，但没有更新 STATUS.md / CHANGELOG.md / dev-docs/ / docs/ 中的任一文档。"
+            echo "改动文件列表："
+            echo "$CHANGED"
+            exit 1
+          fi
+
+          echo "文档同步检查通过"
+
+      - name: 准备 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Python 语法检查
+        run: python -m compileall -q backend
