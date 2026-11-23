@@ -3,7 +3,7 @@
 > **这个文件回答"项目现在做到哪了"。** 同事 pull 代码后，先读本文件，再读
 > `AGENTS.md` 和 `CHANGELOG.md`。每次提交代码时顺手更新这里（改动 1～5 行即可）。
 >
-> 最后更新：2026-11-23 | 对应 git HEAD：`aab4a6b`
+> 最后更新：2026-11-23 | 完整变更历史见下表与 `git log`
 
 ## 当前状态
 
@@ -50,7 +50,7 @@
 
 | 日期 | 提交 | 做了什么 |
 |---|---|---|
-| 2026-11-23 | （未提交） | 新增协作文档：`AGENTS.md`、`STATUS.md`、`CHANGELOG.md`、`dev-docs/` 模板 |
+| 2026-11-23 | `b0d2434` | 新增协作文档：`AGENTS.md`、`STATUS.md`、`CHANGELOG.md`、`dev-docs/` 模板 |
 | 2026-11-21 | `aab4a6b` | 数据层升级为 PostgreSQL，SQLAlchemy async + asyncpg 连接池，全 async 路由 |
 | 2026-11-21 | `cd74d67` | 添加 README 导航与 `docs/` 五篇 Wiki 文档 |
 | 2026-11-21 | `fddc372` | 初始化项目：原生前端 + FastAPI + SQLite 客户管理系统 |
